@@ -45,12 +45,12 @@ void Solution::build(int d, const vector<float>& base)
 
     finished = false; 
     
-    if (M <= 0) M = 16;
-    if (Mmax <= 0) Mmax = 32;
-    if (Mmax0 <= 0 || Mmax0 > 100) Mmax0 = 64; 
+    // if (M <= 0) M = 16;
+    // if (Mmax <= 0) Mmax = 32;
+    // if (Mmax0 <= 0 || Mmax0 > 100) Mmax0 = 64; 
     
-    if (L <= 0) L = 16;
-    if (efConstruct <= 0) efConstruct = 100;
+    // if (L <= 0) L = 16;
+    // if (efConstruct <= 0) efConstruct = 200;
     m_l = 1.0 / log(M); 
 
     dim = d;
@@ -80,6 +80,7 @@ void Solution::build(int d, const vector<float>& base)
     enterpoint = 0;
 
     unsigned int num_threads = std::thread::hardware_concurrency();
+    cout<<"numberofthreads:"<<num_threads<<endl;
     if (num_threads == 0) num_threads = 4;
     
     std::atomic<int> current_idx(1); 
@@ -122,7 +123,7 @@ void Solution::build(int d, const vector<float>& base)
             }
         }
     };
-    cout<<"Finished building"<<endl;
+    cout<<"Started building"<<endl;
     for (unsigned int i = 0; i < num_threads; ++i) threads.emplace_back(worker, i);
     for (auto& t : threads) if (t.joinable()) t.join();
     cout<<"exiting build"<<endl;

@@ -10,8 +10,8 @@ class Solution
         int tag = 1;
 
         void search_batch(const vector<vector<float>>& queries, vector<vector<int>>& results);
-        int dim=128,n_base,L=16,M=32,Mmax = 50, Mmax0 = 256, efConstruct = 500,enterpoint,enterlayer,
-        efsearch = 200;
+        int dim=128,n_base,L=16,M=32,Mmax = 50, Mmax0 = 50, efConstruct = 500,enterpoint,enterlayer,
+        efsearch = 300;
         bool finished = false;
         double m_l;
         
