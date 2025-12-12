@@ -80,7 +80,7 @@ void Solution::build(int d, const vector<float>& base)
     enterpoint = 0;
 
     unsigned int num_threads = std::thread::hardware_concurrency();
-    cout<<"numberofthreads:"<<num_threads<<endl;
+    // cout<<"numberofthreads:"<<num_threads<<endl;
     if (num_threads == 0) num_threads = 4;
     
     std::atomic<int> current_idx(1); 
@@ -123,10 +123,10 @@ void Solution::build(int d, const vector<float>& base)
             }
         }
     };
-    cout<<"Started building"<<endl;
+    // cout<<"Started building"<<endl;
     for (unsigned int i = 0; i < num_threads; ++i) threads.emplace_back(worker, i);
     for (auto& t : threads) if (t.joinable()) t.join();
-    cout<<"exiting build"<<endl;
+    // cout<<"exiting build"<<endl;
     finished = true;
 }
 
@@ -286,6 +286,83 @@ vector<int> Solution::select_neighbour(int q, vector<pair<float,int>>& W, int M,
     return result;
 }
 
+vector<pair<float,int>> Solution::search_layer2(const vector<float> &q, int ep, int ef, int lc)
+{
+    tag++;
+    if (tag > 1000000000) {
+        std::fill(visited.begin(), visited.end(), 0);
+        tag = 1;
+    }
+
+    // cout<<ep<<" "<<ef<<" "<<lc<<endl;
+    if(layer[lc].empty())
+    {
+        //cout<<"isempty"<<endl;
+        return {};
+    }
+    // W: 结果集 (最大堆，顶部是最远距离点)
+    priority_queue<pair<float, int>> W; 
+    // V: 待访问集 (最小堆，顶部是最近距离点)
+    priority_queue<pair<float, int>, vector<pair<float, int>>, greater<pair<float, int>>> V;
+    // visited: 5记录已访问的节点，防止重复处理
+
+    // 1. 初始化
+    float dist = distance_square(q, _base[ep]);
+    W.push({dist, ep});
+    V.push({dist, ep});
+    visited[ep] = tag;
+    
+
+    while (!V.empty())
+    {
+        pair<float, int> current = V.top();
+        V.pop();
+
+        float dist_c = current.first;
+        int c = current.second;
+        
+        // 剪枝：如果 c 的距离比 W 中最远点的距离还要大，则停止搜索。
+        // 但为了找到 ef 个，通常的优化是：W 中最远点的距离 < V 中最近点的距离时停止。
+        // 这里简化为：如果 W 已满 ef 且 c 比 W 中最远点还远，则跳过
+        if (W.size() >= ef && dist_c > W.top().first) {
+            break;
+        }
+
+        // 遍历 c 在当前层 lc 的所有邻居
+        // 注意：您的 g 是 g[level][node_index] -> 邻居列表
+        for (int neighbor : g[lc][c])
+        {
+            if (visited[neighbor] != tag)
+            {
+                visited[neighbor] = tag;
+                float dist_n = distance_square(q, _base[neighbor]);
+                
+                // 检查是否应该加入 W
+                if (W.size() < ef || dist_n < W.top().first)
+                {
+                    V.push({dist_n, neighbor});
+                    W.push({dist_n, neighbor});
+                    
+                    // 保持 W 的大小不超过 ef
+                    if (W.size() > ef) {
+                        W.pop(); 
+                    }
+                }
+            }
+        }
+    }
+    vector<pair<float,int>> VV;
+    while(!W.empty())
+    {
+        VV.push_back(W.top());
+        W.pop();
+    }
+    // 3. 提取结果
+    reverse(VV.begin(), VV.end());
+    return VV;
+}
+
+
 void Solution::search(const vector<float>& query, int* res)
 {
     if (enterlayer < 0 || enterpoint < 0 || enterpoint >= n_base) { 
@@ -346,3 +423,30 @@ void Solution::search_bf(const vector<float>& query, int* res) {
         }
     }
 }
+
+
+// void Solution::search(const vector<float>& query, int*res)
+// {
+
+//     // cout<<"start searching at layer:"<<lc<<" "<<"position:"<<posc<<endl;
+//     int currObj = enterpoint;
+    
+//     for (int lc = enterlayer; lc > 0; lc--) {
+//         auto candidates = search_layer1(query, currObj, 5, lc); 
+//         if (!candidates.empty()) currObj = candidates[0].second;
+//     }
+//     // cout<<"start searching at bottom layer"<<" "<<"position:"<<posc<<endl;
+//     auto v = search_layer2(query,currObj,efsearch,0);
+//     if(v.size()<10)
+//     {cout<<"error: insufficient results"<<"posc"<<currObj<<"vsize"<<v.size()<<endl;
+//         while(v.size()<10)
+//         {
+//             v.push_back({0,-1});
+//         }
+//     }
+//     partial_sort(v.begin(), v.begin() + 10, v.end());
+//     for (size_t i = 0; i < 10; i++) {
+//         // cout<<"result "<<i<<": "<<v[i]<<endl;
+//         res[i] = v[i].second;
+//     }
+// }

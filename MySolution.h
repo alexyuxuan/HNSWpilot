@@ -10,8 +10,10 @@ class Solution
         int tag = 1;
 
         void search_batch(const vector<vector<float>>& queries, vector<vector<int>>& results);
-        int dim=128,n_base,L=16,M=32,Mmax = 50, Mmax0 = 50, efConstruct = 500,enterpoint,enterlayer,
-        efsearch = 300;
+        void search_old(const vector<float>& query, int* res);
+
+        int dim=128,n_base,L=16,M=32,Mmax = 50, Mmax0 = 300, efConstruct = 500,enterpoint,enterlayer,
+        efsearch = 500;
         bool finished = false;
         double m_l;
         
@@ -27,6 +29,8 @@ class Solution
         int find_nearest(const vector<float>& query, const vector<int>& w);
         vector<int> search_layer(const vector<float>& q, int ep, int ef, int lc);
         vector<pair<float,int>> search_layer1(const vector<float>& q, int ep, int ef, int lc);
+        vector<pair<float,int>> search_layer2(const vector<float> &q, int ep, int ef, int lc);
+
 
         vector<vector<float>> _base;
         vector<vector<vector<int>>> g;
